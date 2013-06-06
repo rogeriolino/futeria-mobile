@@ -1,0 +1,93 @@
+
+* {
+	padding: 0;
+	margin: 0;
+}
+
+#header {
+}
+
+#header .home-button {
+    width: 105px;
+    height: 30px;
+    background-image: url(../img/logo.png);
+    background-repeat: no-repeat;
+    background-position: center center;
+    text-indent: -1000px;
+}
+
+#header .buttons {
+    padding-right: 5px;
+    float: right;
+}
+
+#app.article #content {
+    text-align: justify;
+}
+
+#app.article #content h2 {
+    
+}
+
+#app.article #content span.date {
+    color: #999;
+    font-size:  .8em;
+    padding-bottom: 15px;
+    display: block;
+}
+
+#app.article #content .source.ge { background-image: url(../img/source/ge.png); }
+#app.article #content .source.terra { background-image: url(../img/source/terra.png); }
+#app.article #content .source.lance { background-image: url(../img/source/lance.png); }
+
+#app.article #content .source {
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-top-color: #cccccc;
+    margin: 20px 20px 0 20px;
+    padding: 20px 22px;
+    background-repeat: no-repeat;
+    background-position: left center;
+}
+
+#app.article #content .source a {
+    text-decoration: none;
+}
+
+#articles-list.ui-listview .ui-li-icon {
+    top: 1.8em !important;
+}
+
+#futeria-loader-overlay {
+    top: 0;
+    background: rgba(0, 0, 0, 0.3);
+    display: none;
+    position: fixed;
+    z-index: 100;
+}
+
+table {
+    width: 100%;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
+div.league-table {
+    overflow: auto;
+}
+
+table td {
+    padding: 5px 2px;
+    white-space: nowrap;
+}
+
+table td.header {
+    color: #fff;
+    background: #333;
+}
+
+table td.even {
+    background: #e1e1e1;
+}
+
+.ui-page { -webkit-backface-visibility: hidden; }
