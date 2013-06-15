@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="css/futeria.mobile.css?v=1.0" />
     <script src="js/jquery.min.js?v=1.8.2"></script>
     <script src="js/jquery.mobile.min.js?v=1.2.0"></script>
-    <script src="js/futeria.mobile.js?v=1.10.1"></script>
+    <script src="../js/futeria.mobile.js"></script>
+    <script src="js/futeria.jqm.js"></script>
 </head>
 <body>
     <!-- 
@@ -31,14 +32,14 @@
     -->
     <div id="articles" data-role="page">
         <div data-role="header" data-position="fixed">
-            <a href="#teams" onclick="Futeria.Mobile.currTeam('')" data-icon="arrow-l" data-direction="reverse">Voltar</a>
+            <a onclick="Futeria.Mobile.currPage('teams', true)" data-icon="arrow-l">Voltar</a>
             <h1>Notícias</h1>
             <!--a href="#dialog" data-rel="dialog" data-icon="gear" class="ui-btn-right">Config</a-->
         </div>
         <div class="content" data-role="content">
             <ul id="articles-list" data-role="listview">
             </ul>
-            <a href="#teams" onclick="Futeria.Mobile.currTeam('')" data-role="button" data-icon="arrow-l" data-direction="reverse">Voltar</a>
+            <a onclick="Futeria.Mobile.currPage('teams', true)" data-role="button" data-icon="arrow-l">Voltar</a>
         </div>
     </div>
 
@@ -47,14 +48,14 @@
     -->
     <div id="article" data-role="page">
         <div data-role="header" data-position="fixed">
-            <a href="#articles" onclick="Futeria.Mobile.currArticle('')" data-icon="arrow-l" data-direction="reverse">Voltar</a>
+            <a onclick="Futeria.Mobile.currPage('articles', true)" data-icon="arrow-l">Voltar</a>
             <h1>Matéria completa</h1>
             <!--a href="#dialog" data-rel="dialog" data-icon="gear" class="ui-btn-right">Config</a-->
         </div>
         <div class="content" data-role="content">
             <div id="article-view">
             </div>
-            <a href="#articles" onclick="Futeria.Mobile.currArticle('')" data-role="button" data-icon="arrow-l" data-direction="reverse">Voltar</a>
+            <a onclick="Futeria.Mobile.currPage('articles', true)" data-role="button" data-icon="arrow-l">Voltar</a>
         </div>
     </div>
 
@@ -96,11 +97,12 @@
     <script type="text/javascript">
         $(function() {
             $.mobile.defaultPageTransition = 'slide';
-            $.mobile.changePage('#' + Futeria.Mobile.currPage());
-            Futeria.Mobile.load(Futeria.Mobile.currPage());
+            var page = Futeria.Mobile.currPage() || 'teams';
+            Futeria.Mobile.load(page);
+            Futeria.Mobile.currPage(page);
 
             $(document).bind('pagechange', function() {
-                Futeria.Mobile.load(Futeria.Mobile.currPage());
+                //Futeria.Mobile.load(Futeria.Mobile.currPage());
             });
         });
     </script>

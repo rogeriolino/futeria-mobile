@@ -1,30 +1,157 @@
 /**
- * Futeria Mobile
+ * Futeria Mobile core
  */
 var Futeria = Futeria || {};
-
 Futeria.Mobile = {
         
     listLimit: 20,
-    baseUrl: '.',
+    baseUrl: '../',
     apiUrl: 'http://api.futeria.net',
-    lastLoad: { team: '', article: ''},
+    
+    load: function(pageName, reverse) {
+        var page = Futeria.Mobile.Pages.Current(pageName);
+        if (!page) {
+            alert('Página inválida');
+            Futeria.Mobile.load('teams', true);
+        } else {
+            page.load();
+            Futeria.Mobile.impl.goto(pageName, reverse);
+        }
+    },
+    
+    refresh: function() {
+        var page = Futeria.Mobile.Pages.Current();
+        if (page && page.load) {
+            page.load();
+        }
+    },
+    
+    back: function() {
+        var page = Futeria.Mobile.Pages.Current();
+        if (page && page.prev) {
+            page.prev();
+        }
+    },
+            
+    ajax: function(prop) {
+        Futeria.Mobile.impl.showLoading();
+        $.ajax({
+            url: Futeria.Mobile.apiUrl + prop.url,
+            dataType: 'json',
+            success: function(response) {
+                if (typeof(prop.success) === 'function') {
+                    prop.success(response);
+                }
+                Futeria.Mobile.impl.hideLoading();
+            },
+            complete: function(response) {
+                if (typeof(prop.complete) === 'function') {
+                    prop.complete(response);
+                };
+            },
+            error: function() {
+                Futeria.Mobile.impl.hideLoading();
+                alert('Erro ao carregar a página. Verifique a conexão com a Internet e tente novamente.');
+            }
+        });
+    },
 
-    pageBackFlow: {
-        teams: 'teams',
-        article: 'articles',
-        articles: 'teams'
+    Pages: {
+
+        Current: function(pageName) {
+            var pageName = pageName || Futeria.Mobile.currPage();
+            pageName = pageName[0].toUpperCase() + pageName.substring(1);
+            return Futeria.Mobile.Pages[pageName];
+        },
+                
+        Teams: {
+            loaded: false,
+            load: function() {
+                // prevent multi load
+                if (this.loaded) {
+                    return;
+                }
+                this.loaded = true;
+                Futeria.Mobile.ajax({
+                    url: '/teams',
+                    success: function(response) {
+                        Futeria.Mobile.impl.showTeams(response.data || []);
+                    }
+                });
+            },
+            next: function(teamSlug) {
+                Futeria.Mobile.currTeam(teamSlug); 
+                Futeria.Mobile.currArticle('');
+                Futeria.Mobile.currPage('articles');
+            }
+        },
+        
+        Articles: {
+            lastTeam: null, 
+            load: function() {
+                var teamSlug = Futeria.Mobile.currTeam();
+                // prevent multi load
+                if (teamSlug === this.lastTeam) {
+                    return;
+                }
+                Futeria.Mobile.ajax({
+                    url: '/articles/' + teamSlug + '/' + Futeria.Mobile.listLimit + '?t=' + Futeria.Mobile.Util.timestamp(),
+                    success: function(response) {
+                        Futeria.Mobile.impl.showArticles(teamSlug, response.data || []);
+                        this.lastTeam = teamSlug;
+                    }
+                });
+            },
+            prev: function() {
+                Futeria.Mobile.currTeam('');
+                Futeria.Mobile.currArticle('');
+                Futeria.Mobile.currPage('teams', true);
+            },
+            next: function(teamSlug, articleSlug) {
+                Futeria.Mobile.currTeam(teamSlug); 
+                Futeria.Mobile.currArticle(articleSlug);
+                Futeria.Mobile.currPage('article');
+            }
+        },
+        
+        Article: {
+            lastTeam: null,
+            lastArticle: null,
+            load: function() {
+                var teamSlug = Futeria.Mobile.currTeam();
+                var articleSlug = Futeria.Mobile.currArticle();
+                // prevent multi load
+                if (teamSlug === this.lastTeam && articleSlug === this.lastArticle) {
+                    return;
+                }
+                Futeria.Mobile.ajax({
+                    url: '/article/' + teamSlug + '/' + articleSlug + '?plain',
+                    success: function(response) {
+                        if (response && response.data) {
+                            Futeria.Mobile.impl.showArticle(teamSlug, response.data || {});
+                            this.lastTeam = teamSlug;
+                            this.lastArticle = articleSlug;
+                        } else {
+                            alert('Artigo inválido');
+                            Futeria.Mobile.load('teams', true);
+                        }
+                    }
+                });
+            },
+            prev: function() {
+                Futeria.Mobile.currArticle('');
+                Futeria.Mobile.currPage('articles', true);
+            }
+        }
     },
 
     currPage: function() {
-        if (!Futeria.Mobile.currTeam()) {
-            return 'teams';
-        } else {
-            if (!Futeria.Mobile.currArticle()) {
-                return 'articles';
-            }
-            return 'article';
+        if (arguments.length) {
+            localStorage.setItem('page', arguments[0]);
+            // arg[0] = pageName, arg[1] = reverse (back button)
+            Futeria.Mobile.load(arguments[0], arguments[1] === true);
         }
+        return localStorage.getItem('page');
     },
 
     currTeam: function() {
@@ -41,158 +168,12 @@ Futeria.Mobile = {
         return localStorage.getItem('article');
     },
 
-    load: function(page) {
-        switch (page) {
-        case 'teams':
-            Futeria.Mobile.Loader.teams();
-            break;
-        case 'articles':
-            Futeria.Mobile.Loader.articles(Futeria.Mobile.currTeam());
-            break;
-        case 'article':
-            Futeria.Mobile.Loader.article(Futeria.Mobile.currTeam(), Futeria.Mobile.currArticle());
-            break;
-        }
-    },
-
-    update: function(prop) {
-        prop = prop || {};
-        Futeria.Mobile.currPage(prop.page || 'teams');
-        Futeria.Mobile.currTeam(prop.team || '');
-        Futeria.Mobile.currArticle(prop.article || '');
-    },
-
-    Loader: {
-
-        teams: function() {
-            if (Futeria.Mobile.teamsLoaded) {
-                return;
-            }
-            Futeria.Mobile.teamsLoaded = true;
-            var list = $('#teams-list');
-            list.html('');
-            $.mobile.showPageLoadingMsg();
-            $.ajax({
-                url: Futeria.Mobile.apiUrl + '/teams',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.data && response.data.length) {
-                        for (var i = 0; i < response.data.length; i++) {
-                            var team = response.data[i];
-                            var icon = Futeria.Mobile.Loader.icon(team.slug);
-                            var onclick = "Futeria.Mobile.currTeam('" + team.slug + "');";
-                            list.append('<li><a href="#articles" data-transition="slide" onclick="' + onclick + '">' + icon + team.nickname + '</a></li>');
-                        }
-                    }
-                    list.listview('refresh');
-                    $.mobile.hidePageLoadingMsg();
-                    Futeria.Mobile.update();
-                },
-                error: function(xhr, status, error) {
-                    Futeria.Mobile.Error.show(error.responseText);
-                }
-            });
-        },
-
-        articles: function(teamSlug) {
-            // prevent multi load
-            if (teamSlug === Futeria.Mobile.lastLoad.team) {
-                return;
-            }
-            Futeria.Mobile.lastLoad.team = teamSlug;
-            var list = $('#articles-list');
-            list.html('');
-            $.mobile.showPageLoadingMsg();
-            $.ajax({
-                url: Futeria.Mobile.apiUrl + '/articles/' + teamSlug + '/' + Futeria.Mobile.listLimit + '?t=' + Futeria.Mobile.Util.timestamp(),
-                dataType: 'json',
-                success: function(response) {
-                    if (response.data && response.data.length) {
-                        for (var i = 0; i < response.data.length; i++) {
-                            var article = response.data[i];
-                            var icon = Futeria.Mobile.Loader.icon(teamSlug);
-                            var name = "<h3>" + article.title + "</h3>";
-                            var description = "<p>" + Futeria.Mobile.Util.formatDate(article.date) + "</p>";
-                            var onclick = "Futeria.Mobile.currTeam('" + teamSlug + "'); Futeria.Mobile.currArticle('" + article.slug + "');";
-                            list.append('<li><a href="#article" onclick="' + onclick + '">' + icon + name + description + '</a></li>');
-                        }
-                    }
-                    list.listview('refresh');
-                    $.mobile.hidePageLoadingMsg();
-                    Futeria.Mobile.update({team: teamSlug, page: 'articles'});
-                },
-                error: function(xhr, status, error) {
-                    Futeria.Mobile.Error.show(error.responseText);
-                }
-            });
-        },
-
-        article: function(teamSlug, articleSlug) {
-            // prevent multi load
-            if (teamSlug === Futeria.Mobile.lastLoad.team && articleSlug === Futeria.Mobile.lastLoad.article) {
-                return;
-            }
-            Futeria.Mobile.lastLoad.team = teamSlug;
-            Futeria.Mobile.lastLoad.article = articleSlug;
-            var view = $('#article-view');
-            view.html('');
-            $.mobile.showPageLoadingMsg();
-            $.ajax({
-                url: Futeria.Mobile.apiUrl + '/article/' + teamSlug + '/' + articleSlug + '?plain',
-                dataType: 'json',
-                success: function(response) {
-                    if (response && response.data) {
-                        view.append('<h2>' + response.data.title + '</h2>');
-                        var content = response.data.content;
-                        content = content.split("\n").join("<br/>");
-                        view.append('<div>' + content + '</div>');
-                        Futeria.Mobile.update({team: teamSlug, article: articleSlug, page: 'article'});
-                    } else {
-                        Futeria.Mobile.Error.show('Error: Invalid article');
-                    }
-                    $.mobile.hidePageLoadingMsg();
-                },
-                error: function(xhr, status, error) {
-                    Futeria.Mobile.Error.show(error.responseText);
-                }
-            });
-        },
-
-        icon: function(team) {
-            return '<img src="' + Futeria.Mobile.baseUrl + '/img/team/' + team + '.mini.png" alt="" class="ui-li-icon" />';
-        }
-    },
-    
-    Config: {
-        
-        load: function() {
-            if (localStorage.getItem('team')) {
-                $("#team").val(localStorage.getItem('team'));
-                $("#team").selectmenu('refresh', true);
-            }
-        },
-        
-        save: function() {
-            localStorage.setItem('team', $("#team").val());
-            var dialog = $('#dialog');
-            dialog.find('h1').text('Configurações');
-            dialog.find('p').text('Configurações salvas com sucesso');
-            $('#dialogOpen').click();
-        }
-        
-    },
-
     Util: {
         
         months: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outrubro', 'novembro', 'dezembro'],
-
-        isHome: function() {
-            var base = Futeria.Mobile.baseUrl;
-            var location = window.location.toString();
-            if (location[location.length - 1] == '/') {
-                base += '/';
-            }
-            return (base == location);
+                
+        icon: function(team) {
+            return '<img src="' + Futeria.Mobile.baseUrl + '/img/team/' + team + '.mini.png" alt="" class="ui-li-icon" />';
         },
 
         timestamp: function() {
@@ -208,17 +189,6 @@ Futeria.Mobile = {
             return '';
         }
 
-    },
-
-    Error: {
-
-        show: function(msg) {
-            $.mobile.hidePageLoadingMsg();
-            if (msg) {
-                alert(msg);
-            }
-        }
-
     }
     
-}
+};
