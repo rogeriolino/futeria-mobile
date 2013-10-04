@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Futeria.net</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/jquery.mobile.min.css?v=1.2.0" />
+    <link rel="stylesheet" href="css/futeria.mobile.css?v=1.0" />
+    <script src="js/jquery.min.js?v=1.8.2"></script>
+    <script src="js/jquery.mobile.min.js?v=1.2.0"></script>
+    <script src="js/futeria.mobile.js"></script>
+    <script src="js/futeria.jqm.js"></script>
+    <style>
+        .nav .ui-btn.ui-first-child {
+          border-top-width: 0;
+          background: #111;
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+        home: teams page
+    -->
+    <div id="teams" data-role="page">
+        <div data-role="panel" id="nav-panel-1" class="nav">
+            <ul data-role="listview" class="nav-search" data-theme="b" data-divider-theme="d" data-icon="false">
+                <li data-role="list-divider">Futeria Mobile</li>
+                <li class="ui-disabled"><a href="#">Times</a></li>
+                <li><a href="#table">Classificação</a></li>
+            </ul>
+        </div>
+        <div data-role="header" data-position="fixed" data-theme="b">
+            <h1>Times</h1>
+            <a href="#nav-panel-1" data-icon="bars" data-iconpos="notext">Menu</a>
+        </div>
+        <div class="content" data-role="content">
+            <ul id="teams-list" data-role="listview">
+            </ul>
+        </div>
+    </div>
+
+    <!-- 
+        articles page (after team choose)
+    -->
+    <div id="articles" data-role="page">
+        <div data-role="panel" id="nav-panel-2" class="nav">
+            <ul data-role="listview" class="nav-search" data-theme="b" data-divider-theme="d" data-icon="false">
+                <li data-role="list-divider">Futeria Mobile</li>
+                <li class="ui-disabled"><a href="#">Notícias</a></li>
+                <li><a href="#teams">Times</a></li>
+                <li><a href="#table">Classificação</a></li>
+            </ul>
+        </div>
+        <div data-role="header" data-position="fixed" data-theme="b">
+            <h1>Notícias</h1>
+            <a href="#nav-panel-2" data-icon="bars" data-iconpos="notext">Menu</a>
+        </div>
+        <div class="content" data-role="content">
+            <ul id="articles-list" data-role="listview">
+            </ul>
+        </div>
+    </div>
+
+    <!-- 
+        article page (after team and article choose)
+    -->
+    <div id="article" data-role="page">
+        <div data-role="panel" id="nav-panel-3" class="nav">
+            <ul data-role="listview" class="nav-search" data-theme="b" data-divider-theme="d" data-icon="false">
+                <li data-role="list-divider">Futeria Mobile</li>
+                <li class="ui-disabled"><a href="#">Notícia</a></li>
+                <li><a href="#articles">Notícias</a></li>
+                <li><a href="#teams">Times</a></li>
+                <li><a href="#table">Classificação</a></li>
+            </ul>
+        </div>
+        <div data-role="header" data-position="fixed" data-theme="b">
+            <h1>Matéria completa</h1>
+            <a href="#nav-panel-3" data-icon="bars" data-iconpos="notext">Menu</a>
+        </div>
+        <div class="content" data-role="content">
+            <div id="article-view">
+            </div>
+        </div>
+    </div>
+
+    <!-- 
+        league table page
+    -->
+    <div id="table" data-role="page">
+        <div data-role="panel" id="nav-panel-4" class="nav">
+            <ul data-role="listview" class="nav-search" data-theme="b" data-divider-theme="d" data-icon="false">
+                <li data-role="list-divider">Futeria Mobile</li>
+                <li><a href="#teams">Times</a></li>
+                <li class="ui-disabled"><a href="#">Classificação</a></li>
+            </ul>
+        </div>
+        <div data-role="header" data-position="fixed" data-theme="b">
+            <h1>Brasileirão 2013</h1>
+            <a href="#nav-panel-4" data-icon="bars" data-iconpos="notext">Menu</a>
+        </div>
+        <div class="content" data-role="content">
+            <div id="table-view" class="league-table">
+            </div>
+            <script> 
+                $.ajax({ 
+                    url: 'http://m.futeria.net/table.php', 
+                    complete: function(response) {
+                        $('#table-view').html(response.responseText);
+                    } 
+                });
+            </script>
+        </div>
+    </div>
+</body>
+</html>

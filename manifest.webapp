@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "name": "Futeria",
+  "description": "Brazilian football news",
+  "launch_path": "index.html",
+  "icons": {
+    "48": "/img/icon-48.png",
+    "128": "/img/icon-128.png",
+    "512": "/img/icon-512.png"
+  },
+  "developer": {
+    "name": "Rogério Alencar Lino Filho",
+    "url": "http://futeria.net"
+  },
+  "installs_allowed_from": ["*"],
+  "default_locale": "pt"
+}
